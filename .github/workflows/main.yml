@@ -1,0 +1,45 @@
+
+name: Build VCClient 1.1
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'VCClient-1.1-Navigation-Source.zip'
+      - '.github/workflows/main.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '2.14.1'
+
+      - name: Extract source
+        run: |
+          mkdir -p source
+          unzip -o VCClient-1.1-Navigation-Source.zip -d source
+
+      - name: Build Forge mod
+        run: |
+          cd source/VCClient-1.1-Navigation-Source
+          gradle build --no-daemon
+
+      - name: Upload JAR
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VCClient-build
+          path: source/VCClient-1.1-Navigation-Source/build/libs/*.jar
+          if-no-files-found: warn
